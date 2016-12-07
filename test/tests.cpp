@@ -57,6 +57,19 @@ biginteger endcode_decode(biginteger bi) {
 	return biginteger(s);
 }
 
+static inline bool block_equal(block a, block b) {
+#ifdef __SSE_4_1__
+	__m128i neq = _mm_xor_si128(a, b);
+	if (_mm_test_all_zeros(neq, neq)) {
+#else
+	__m128i cmp = _mm_cmpeq_epi8(a, b);
+	if (_mm_movemask_epi8(cmp) == 0xffff) {
+#endif
+		return true;
+	}
+	return false;
+}
+
 string rsa100 = "1522605027922533360535618378132637429718068114961380688657908494580122963258952897654000350692006139";
 string xx = "12796996813601383763849798056730343283682939747202100943566894545802445831004";
 
@@ -617,13 +630,8 @@ TEST_CASE("random", "[PrgFromOpenSSLAES]")
 			auto int1 = random1.getRandom128();
 			auto int2 = random2.getRandom128();
 
-			bool equal = false;
+			bool equal = block_equal(int1, int2);
 
-
-			__m128i neq = _mm_xor_si128(int1, int2);
-			if (_mm_test_all_zeros(neq, neq)) {//int1 == int2
-				equal = true;
-			}
 			REQUIRE(equal == true);
 		}
 
