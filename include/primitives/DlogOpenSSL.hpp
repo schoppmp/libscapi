@@ -1,28 +1,28 @@
 /**
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 * Copyright (c) 2016 LIBSCAPI (http://crypto.biu.ac.il/SCAPI)
 * This file is part of the SCAPI project.
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
-* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-* 
+*
 * We request that any publication and/or code referring to and/or based on SCAPI contain an appropriate citation to SCAPI, including a reference to
 * http://crypto.biu.ac.il/SCAPI.
-* 
+*
 * Libscapi uses several open source libraries. Please see these projects for any further licensing issues.
 * For more information , See https://github.com/cryptobiu/libscapi/blob/master/LICENSE.MD
 *
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 */
 
 
@@ -38,8 +38,8 @@
 /**********************/
 /**** Helpers *********/
 /**********************/
-biginteger opensslbignum_to_biginteger(BIGNUM* bint);
-BIGNUM* biginteger_to_opensslbignum(biginteger bi);
+biginteger opensslbignum_to_biginteger(const BIGNUM* bint);
+BIGNUM* biginteger_to_opensslbignum(const biginteger bi);
 
 class OpenSSLDlogZpSafePrime;
 /**
@@ -58,7 +58,7 @@ private:
 	 */
 	OpenSSLZpSafePrimeElement(const biginteger & x, const biginteger & p, bool bCheckMembership) :
 		ZpSafePrimeElement(x, p, bCheckMembership) { createOpenSSLElement(); };
-	
+
 	/**
 	* Creates a random element in the group.
 	*/
@@ -83,7 +83,7 @@ private:
 	void createOpenSSLDlogZp(const biginteger & p, const biginteger & q, const biginteger & g);
 	void createRandomOpenSSLDlogZp(int numBits);
 
-	bool validateElement(BIGNUM* element);
+	bool validateElement(const BIGNUM* element);
 	int calcK(const biginteger & p);
 
 public:
@@ -99,7 +99,7 @@ public:
 	*/
 	OpenSSLDlogZpSafePrime(int numBits = 1024, const shared_ptr<PrgFromOpenSSLAES> & random = get_seeded_prg());
 	OpenSSLDlogZpSafePrime(string numBits) : OpenSSLDlogZpSafePrime(stoi(numBits)) {};
-	
+
 	string getGroupType() override { return "Zp*"; }
 	shared_ptr<GroupElement> getIdentity() override;
 	shared_ptr<GroupElement> createRandomElement() override;
@@ -108,9 +108,9 @@ public:
 	bool validateGroup() override;
 	shared_ptr<GroupElement> getInverse(GroupElement* groupElement) override;
 	shared_ptr<GroupElement> exponentiate(GroupElement* base, const biginteger & exponent) override;
-	shared_ptr<GroupElement> exponentiateWithPreComputedValues(const shared_ptr<GroupElement> & groupElement, 
+	shared_ptr<GroupElement> exponentiateWithPreComputedValues(const shared_ptr<GroupElement> & groupElement,
 		const biginteger & exponent) override { return exponentiate(groupElement.get(), exponent); };
-	shared_ptr<GroupElement> multiplyGroupElements(GroupElement* groupElement1, 
+	shared_ptr<GroupElement> multiplyGroupElements(GroupElement* groupElement1,
 		GroupElement* groupElement2) override;
 	shared_ptr<GroupElement> simultaneousMultipleExponentiations(vector<shared_ptr<GroupElement>> & groupElements,
 		vector<biginteger> & exponentiations) override;
@@ -125,7 +125,7 @@ public:
  * This class is an abstract class that implements  common functionality of EC Dlog group using OpenSSL library.
  */
 class OpenSSLDlogEC : public DlogEllipticCurve{
-	
+
 protected:
 	shared_ptr<EC_GROUP> curve;	// The underlying OpenSSL group
 	shared_ptr<BN_CTX> ctx;
@@ -173,7 +173,7 @@ private:
 	void createCurve(const biginteger & p, const biginteger & a, const biginteger & b);
 	void initCurve(const biginteger & q);
 	bool checkSubGroupMembership(OpenSSLECFpPoint* point);
-	
+
 
 protected:
 	shared_ptr<ECElement> createPoint(const shared_ptr<EC_POINT> &) override;
@@ -197,7 +197,7 @@ public:
 	const vector<unsigned char> decodeGroupElementToByteArray(GroupElement* groupElement) override;
 
 	shared_ptr<GroupElement> reconstructElement(bool bCheckMembership, GroupElementSendableData* data) override;
-	
+
 	friend class OpenSSLECFpPoint; //The corresponding group element is a friend class in order to use the private methods.
 };
 
@@ -256,7 +256,7 @@ public:
 	bool isInfinity() override;
 	biginteger getX() override { return x; }
 	biginteger getY() override { return y; }
-	friend class OpenSSLDlogEC;  
+	friend class OpenSSLDlogEC;
 };
 
 /*
