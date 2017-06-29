@@ -1,6 +1,6 @@
 #ifndef OT_H__
 #define OT_H__
-#include </usr/local/include/emp-tool/emp-tool>
+#include <emp-tool>
 
 template<typename T>
 class OT {

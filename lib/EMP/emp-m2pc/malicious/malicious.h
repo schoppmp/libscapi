@@ -1,7 +1,7 @@
 #ifndef MALICIOUS_2PC_H__
 #define MALICIOUS_2PC_H__
-#include </usr/local/include/emp-tool/emp-tool>
-#include </usr/local/include/emp-ot/emp-ot>
+#include <emp-tool>
+#include <emp-ot>
 
 template<RTCktOpt rt = RTCktOpt::off>
 class Malicious2PC { public:
