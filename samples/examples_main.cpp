@@ -44,7 +44,7 @@ example_name can one of the following:
 	* sigma		  <party_number (1|2)> <config_file_path>
 	* commitment  <party_number (1|2)> <config_file_path>
 	* ot  <party_number (1|2)> <config_file_path>
-	* OTExtensionBristol <party_number (0|1)> (linux only) 
+	* OTExtensionBristol <party_number (1|2)> (linux only)
 	* ospsi input_file_1 input_file_2
 				)";
 	cerr << usage << endl;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 		return exampleUsage();
 
 	if (exampleName == "ospsi")
-		//return mainOSPSI(argv[2], argv[3]);
+		return mainOSPSI(argv[2], argv[3]);
 	if (exampleName == "comm") 
 		return mainComm(argv[2], argv[3]);
 	if (exampleName == "yao")

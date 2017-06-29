@@ -16,7 +16,7 @@ void CmtWithDifferenceCommitter::commitToDifference(DifferenceCommitmentCommitte
 	msg.setCommittedDifference(index, committedDifference);
 	// P1 sends 2*s shares to P2.
 	// P2 must choose a challenge W (the choose).
-	//P1 sends the xor of both committed values. 
+	//P1 sends the xor of both committed values.
 	vector<byte> delta(2 * s*n);
 	for (int i = 0; i < s; i++)
 	{
@@ -180,13 +180,13 @@ void CmtWithDifferenceCommitter::proveDifferencesBetweenMasks(vector<shared_ptr<
 	receiveW();
 
 	//Send the decommitments of the committed differences.
-    int xSize = bucket[0]->getC()->getDecomX(0, w[0]).size();
+	int xSize = bucket[0]->getC()->getDecomX(0, w[0]).size();
 	vector<byte> decommitmentsX((bucket.size() - 1)*s * 2 * xSize);
-    vector<byte> decommitmentsR((bucket.size() - 1)*s * 2 * CryptoPrimitives::getHash()->getHashedMsgSize());
+	vector<byte> decommitmentsR((bucket.size() - 1)*s * 2 * CryptoPrimitives::getHash()->getHashedMsgSize());
 	for (size_t j = 0; j < bucketSize - 1; j++)
 	{
 		proveDifference(*bucket[j], *bucket[j+1], decommitmentsX, decommitmentsR, j);
 	}
 	ProveDecommitments package(decommitmentsX, xSize, decommitmentsR, CryptoPrimitives::getHash()->getHashedMsgSize());
-    sendSerialize(package, channel.get());
+	sendSerialize(package, channel.get());
 }
