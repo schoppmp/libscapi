@@ -1,28 +1,28 @@
 /**
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 * Copyright (c) 2016 LIBSCAPI (http://crypto.biu.ac.il/SCAPI)
 * This file is part of the SCAPI project.
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
-* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-* 
+*
 * We request that any publication and/or code referring to and/or based on SCAPI contain an appropriate citation to SCAPI, including a reference to
 * http://crypto.biu.ac.il/SCAPI.
-* 
+*
 * Libscapi uses several open source libraries. Please see these projects for any further licensing issues.
 * For more information , See https://github.com/cryptobiu/libscapi/blob/master/LICENSE.MD
 *
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 */
 
 
@@ -35,6 +35,8 @@ string DamgardJurikPublicKey::toString() {
 void DamgardJurikPublicKey::initFromString(const string & row) {
 	modulus = biginteger(row);
 }
+
+BOOST_CLASS_EXPORT_IMPLEMENT(DamgardJurikPublicKey)
 
 DamgardJurikPrivateKey::DamgardJurikPrivateKey(RSAModulus & rsaMod) {
 
@@ -99,8 +101,8 @@ void DamgardJurikEnc::setKey(const shared_ptr<PublicKey> & publicKey, const shar
 	if (this->publicKey == NULL) {
 		throw InvalidKeyException("The public key must be of type DamgardJurikPublicKey");
 	}
-	
-	//Private key should be Damgard Jurik private key or null if we are only setting the public key.	
+
+	//Private key should be Damgard Jurik private key or null if we are only setting the public key.
 	if (privateKey != NULL) {
 		this->privateKey = dynamic_pointer_cast<DamgardJurikPrivateKey>(privateKey);
 		if (this->privateKey == NULL) {
@@ -177,8 +179,8 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::encrypt(const shared_ptr<Plain
 	int s = (consts != -1) ? consts : ((NumberOfBits(x) / (NumberOfBits(publicKey->getModulus()) - 1)) + 1);
 
 	biginteger Ntag = mp::pow(publicKey->getModulus(), s + 1);
-	
-	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1 
+
+	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1
 	//which is with overwhelming probability in Zntag*.
 	biginteger r = getRandomInRange(1, Ntag - 1, random.get());
 
@@ -221,15 +223,15 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::encrypt(const shared_ptr<Plain
 	}
 
 	biginteger x = plain->getX();
-	
+
 	//Calculates the length parameter s.
 	int s = (consts != -1) ? consts : ((NumberOfBits(x) / (NumberOfBits(publicKey->getModulus()) - 1)) + 1);
 	biginteger N = mp::pow(publicKey->getModulus(), s);
-	
+
 	//Makes sure the x belongs to ZN
 	if (x < 0 || x >= N)
 		throw invalid_argument("Message too big for encryption");
-	
+
 	biginteger Ntag = mp::pow(publicKey->getModulus(), s + 1);
 	biginteger NtagMinus1 = Ntag - 1;
 
@@ -242,7 +244,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::encrypt(const shared_ptr<Plain
 	biginteger mult1 = mp::powm(publicKey->getModulus() + 1, x, Ntag);
 	biginteger mult2 = mp::powm(r, N, Ntag);
 	biginteger c = (mult1 * mult2) % Ntag;
-	
+
 	//Wraps the BigInteger c with BigIntegerCiphertext and returns it.
 	return make_shared<BigIntegerCiphertext>(c);
 
@@ -288,13 +290,13 @@ shared_ptr<Plaintext> DamgardJurikEnc::decrypt(AsymmetricCiphertext* cipher) {
 	auto djCipher = dynamic_cast<BigIntegerCiphertext*>(cipher);
 	if (djCipher == NULL) {
 		throw invalid_argument ("cipher should be instance of BigIntegerCiphertext");
-	}
+	} 
 
 	//n is the modulus in the public key.
 	biginteger n = publicKey->getModulus();
 	//Calculates s = |cipher| / |n|
 	int s = (consts != -1) ? consts : (NumberOfBits(djCipher->getCipher()) / NumberOfBits(n));
-	
+
 	//Calculates N and N' based on s: N = n^s, N' = n^(s+1)
 	biginteger N = mp::pow(n, s);
 	biginteger Ntag = mp::pow(n, s + 1);
@@ -311,7 +313,7 @@ shared_ptr<Plaintext> DamgardJurikEnc::decrypt(AsymmetricCiphertext* cipher) {
 	} else {
 		d = generateD(N, privateKey->getT());
 	}
-	
+
 	//Computes (cipher ^ d) mod N'
 	biginteger a = mp::powm(djCipher->getCipher(), d, Ntag);
 	//Computes x as the discrete logarithm of c^d to the base (1+n) modulo N'. This is done by the algorithm shown above.
@@ -385,7 +387,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::reRandomize(AsymmetricCipherte
 	biginteger n = publicKey->getModulus();
 	biginteger Ntag = mp::pow(n, s + 1);
 
-	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1 
+	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1
 	//which is with overwhelming probability in Zntag*.
 	biginteger r = getRandomInRange(1, Ntag - 1, random.get());
 
@@ -458,7 +460,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::add(AsymmetricCiphertext* ciph
 	if (djCipher1 == NULL) {
 		throw invalid_argument("cipher should be instance of BigIntegerCiphertext");
 	}
-	
+
 	biginteger c = djCipher1->getCipher();
 
 	//n is the modulus in the public key.
@@ -468,8 +470,8 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::add(AsymmetricCiphertext* ciph
 	//Calculates N and N' based on s: N = n^s, N' = n^(s+1).
 	biginteger n = publicKey->getModulus();
 	biginteger Ntag = mp::pow(n, s + 1);
-	
-	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1 
+
+	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1
 	//which is with overwhelming probability in Zntag*.
 	biginteger r = getRandomInRange(1, Ntag - 1, random.get());
 
@@ -504,7 +506,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::add(AsymmetricCiphertext* ciph
 	if (djCipher1 == NULL || djCipher2 == NULL) {
 		throw invalid_argument("cipher should be instance of BigIntegerCiphertext");
 	}
-	
+
 	biginteger c1 = djCipher1->getCipher();
 	biginteger c2 = djCipher2->getCipher();
 	biginteger n = publicKey->getModulus();
@@ -514,9 +516,11 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::add(AsymmetricCiphertext* ciph
 	int s1 = (consts != -1) ? consts : (NumberOfBits(c1) / NumberOfBits(n));
 	int s2 = (consts != -1) ? consts : (NumberOfBits(c2) / NumberOfBits(n));
 	if (s1 != s2) {
+		cerr << "s1: " << s1 << "\ns2: " << s2 << "\n";
+		cerr << "c1: " << NumberOfBits(c1) << "\nc2: " << NumberOfBits(c2) << "\n";
 		throw invalid_argument("Sizes of ciphertexts do not match");
 	}
-	
+
 	//Calculates N and N' based on s: N = n^s, N' = n^(s+1).
 	biginteger N = mp::pow(n, s1);
 	biginteger Ntag = mp::pow(n, s1 + 1);
@@ -571,8 +575,8 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::multByConst(AsymmetricCipherte
 
 	//Calculates N and N' based on s: N = n^s, N' = n^(s+1).
 	biginteger Ntag = mp::pow(n, s + 1);
-	
-	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1 
+
+	//Chooses a random r in ZNtag*, this can be done by choosing a random value between 1 and Ntag -1
 	//which is with overwhelming probability in Zntag*.
 	biginteger r = getRandomInRange(1, Ntag - 1, random.get());
 
@@ -615,7 +619,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::multByConst(AsymmetricCipherte
 	biginteger n = publicKey->getModulus();
 	//Calculates s = |cipher| / |n|.
 	int s = (consts != -1) ? consts : (NumberOfBits(djCipher->getCipher()) / NumberOfBits(n));
-	
+
 	//Calculates N and N' based on s: N = n^s, N' = n^(s+1).
 	biginteger N = mp::pow(n, s);
 	biginteger Ntag = mp::pow(n, s + 1);
@@ -631,7 +635,7 @@ shared_ptr<AsymmetricCiphertext> DamgardJurikEnc::multByConst(AsymmetricCipherte
 		throw invalid_argument("The cipher is not in ZN'");
 
 	//Makes sure the constant number belongs to ZN.
-	if (constNumber < 0 || constNumber > N) 
+	if (constNumber < 0 || constNumber > N)
 		throw invalid_argument("The constant number is not in ZN");
 
 	biginteger c = mp::powm(djCipher->getCipher(), constNumber, Ntag);
