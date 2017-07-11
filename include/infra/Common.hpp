@@ -1,28 +1,28 @@
 /**
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 * Copyright (c) 2016 LIBSCAPI (http://crypto.biu.ac.il/SCAPI)
 * This file is part of the SCAPI project.
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
-* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+* to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-* 
+*
 * We request that any publication and/or code referring to and/or based on SCAPI contain an appropriate citation to SCAPI, including a reference to
 * http://crypto.biu.ac.il/SCAPI.
-* 
+*
 * Libscapi uses several open source libraries. Please see these projects for any further licensing issues.
 * For more information , See https://github.com/cryptobiu/libscapi/blob/master/LICENSE.MD
 *
 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-* 
+*
 */
 
 
@@ -31,11 +31,8 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <boost/random.hpp>
-#ifdef _WIN32
 #include <boost/multiprecision/cpp_int.hpp>
-#else
 #include <boost/multiprecision/gmp.hpp>
-#endif
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/timer/timer.hpp>
@@ -109,6 +106,28 @@ using biginteger = boost::multiprecision::cpp_int;
 using biginteger = boost::multiprecision::mpz_int;
 #endif
 
+// boost::serialization compatibility for mpz_int
+namespace boost { namespace serialization {
+template<class Archive> inline void save(
+	Archive & ar,
+	const boost::multiprecision::mpz_int & t,
+	const unsigned int /* file_version */
+){
+	ar & t.convert_to<boost::multiprecision::cpp_int>();
+}
+template<class Archive> inline void load(
+	Archive & ar,
+	boost::multiprecision::mpz_int & t,
+	const unsigned int /* file_version */
+){
+	boost::multiprecision::cpp_int t2;
+	ar & t2;
+	t = t2.convert_to<boost::multiprecision::mpz_int>();
+}
+}}
+BOOST_SERIALIZATION_SPLIT_FREE(boost::multiprecision::mpz_int)
+
+
 typedef unsigned char byte;		// put in global namespace to avoid ambiguity with other byte typedefs
 
 
@@ -179,5 +198,3 @@ public:
 		initFromString(s);
 	}
 };
-
-
