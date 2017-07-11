@@ -42,6 +42,17 @@ class DamgardJurikPublicKey : public PublicKey, public KeySendableData {
 private:
 
 	biginteger modulus;
+
+	// boost::serialization implementation
+	friend class boost::serialization::access;
+	template<class Archive> inline void serialize(
+		Archive & ar,
+		const unsigned int /* file_version */
+	){
+		boost::serialization::base_object<PublicKey>(*this);
+		boost::serialization::base_object<KeySendableData>(*this);
+		ar & modulus;
+	}
 public:
 	DamgardJurikPublicKey(const biginteger & modulus) {	this->modulus = modulus; }
 
@@ -56,7 +67,7 @@ public:
 		return out;
 	}
 
-	biginteger getModulus() { return modulus;	}
+	biginteger getModulus() const { return modulus;	}
 
 	/**
 	* This function is used when an Damgard Jurik Public Key needs to be sent via a channel or any other means of sending data (including serialization).
@@ -75,14 +86,26 @@ public:
 	string toString() override;
 
 	void initFromString(const string & row) override;
-
-	template<class Archive> inline void serialize(
-		Archive & ar,
-		const unsigned int /* file_version */
-	){
-		ar & modulus;
-	}
 };
+
+// pointer serialization as there is no default constructor
+namespace boost { namespace serialization {
+	template<class Archive>
+	inline void save_construct_data(
+	    Archive & ar, const DamgardJurikPublicKey * t, const unsigned int /* file_version */
+	){
+	    ar << t->getModulus();
+	}
+	template<class Archive>
+	inline void load_construct_data(
+	    Archive & ar, DamgardJurikPublicKey * t, const unsigned int file_version
+	){
+		biginteger x;
+	    ar >> x;
+	    ::new(t)DamgardJurikPublicKey(x);
+	}
+}}
+BOOST_CLASS_EXPORT_KEY(DamgardJurikPublicKey)
 
 /**
 * This class represents a Private Key suitable for the Damgard-Jurik Encryption Scheme.

@@ -104,28 +104,40 @@ namespace mp = boost::multiprecision;     // reduce the typing a bit later...
 using biginteger = boost::multiprecision::cpp_int;
 #else
 using biginteger = boost::multiprecision::mpz_int;
-#endif
-
-// boost::serialization compatibility for mpz_int
+// boost::serialization compatibility for gmp_int backend
 namespace boost { namespace serialization {
-template<class Archive> inline void save(
+template<class Archive>
+inline void save(
 	Archive & ar,
-	const boost::multiprecision::mpz_int & t,
+	const boost::multiprecision::gmp_int & t,
 	const unsigned int /* file_version */
 ){
-	ar & t.convert_to<boost::multiprecision::cpp_int>();
+	ar & boost::multiprecision::cpp_int(biginteger(t));
+	// size_t count = (mpz_sizeinbase(t.data(), 2) + 7) / 8;
+	// std::vector<char> buf(count);
+	// mpz_export(&buf[0], nullptr, 1, 1, 1, 0, t.data());
+	// ar << buf;
 }
-template<class Archive> inline void load(
+template<class Archive>
+inline void load(
 	Archive & ar,
-	boost::multiprecision::mpz_int & t,
+	boost::multiprecision::gmp_int & t,
 	const unsigned int /* file_version */
 ){
 	boost::multiprecision::cpp_int t2;
 	ar & t2;
-	t = t2.convert_to<boost::multiprecision::mpz_int>();
+	t = std::move(biginteger(t2).backend());
+	// std::vector<char> buf;
+	// ar >> buf;
+	// mpz_t z;
+	// mpz_init(z);
+	// mpz_import(z, buf.size(), 1, 1, 1, 0, &buf[0]);
+	// t = std::move(z);
 }
 }}
-BOOST_SERIALIZATION_SPLIT_FREE(boost::multiprecision::mpz_int)
+BOOST_SERIALIZATION_SPLIT_FREE(boost::multiprecision::gmp_int)
+#endif
+
 
 
 typedef unsigned char byte;		// put in global namespace to avoid ambiguity with other byte typedefs

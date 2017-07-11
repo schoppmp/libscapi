@@ -62,9 +62,19 @@ class BigIntegerPlainText : public Plaintext, public PlaintextSendableData {
 private:
 	biginteger x;
 
+	friend class boost::serialization::access;
+	template<class Archive> inline void serialize(
+		Archive & ar,
+		const unsigned int /* file_version */
+	){
+		boost::serialization::base_object<PlaintextSendableData>(*this);
+		boost::serialization::base_object<Plaintext>(*this);
+		ar & x;
+	}
+
 public:
 	biginteger getX() const { return x; };
-	BigIntegerPlainText(biginteger x) { this->x = x; };
+	BigIntegerPlainText(biginteger x) : x(x) {};
 	BigIntegerPlainText(string s) { this->x = biginteger(s); };
 	bool operator==(const Plaintext &other) const {
 		auto temp = dynamic_cast<const BigIntegerPlainText*>(&other);
@@ -84,14 +94,25 @@ public:
 
 	string toString() override { return (string)x; };
 	void initFromString(const string & raw) override { x = biginteger(raw); }
-
-	template<class Archive> inline void serialize(
-		Archive & ar,
-		const unsigned int /* file_version */
-	){
-		ar & x;
-	}
 };
+// pointer serialization methods since there is no default constructor
+namespace boost { namespace serialization {
+	template<class Archive>
+	inline void save_construct_data(
+	    Archive & ar, const BigIntegerPlainText * t, const unsigned int /* file_version */
+	){
+	    ar << t->getX();
+	}
+	template<class Archive>
+	inline void load_construct_data(
+	    Archive & ar, BigIntegerPlainText * t, const unsigned int /* file_version */
+	){
+		biginteger x;
+	    ar >> x;
+	    ::new(t)BigIntegerPlainText(x);
+	}
+}}
+BOOST_CLASS_EXPORT_KEY(BigIntegerPlainText)
 
 /**
 * This class holds the plaintext as a ByteArray.
@@ -214,12 +235,20 @@ class BigIntegerCiphertext : public AsymmetricCiphertext, public AsymmetricCiphe
 private:
 	biginteger cipher;
 
-public:
-	BigIntegerCiphertext(biginteger cipher) {
-		this->cipher = cipher;
+	friend class boost::serialization::access;
+	template<class Archive> inline void serialize(
+		Archive & ar,
+		const unsigned int /* file_version */
+	){
+		boost::serialization::base_object<AsymmetricCiphertextSendableData>(*this);
+		boost::serialization::base_object<AsymmetricCiphertext>(*this);
+		ar & cipher;
 	}
+public:
+	// BigIntegerCiphertext() : cipher(0) {};
+	BigIntegerCiphertext(biginteger cipher) : cipher(cipher) {};
 
-	biginteger getCipher() { return cipher;	}
+	biginteger getCipher() const { return cipher;	}
 
 	/**
 	* This function is used when an asymmetric ciphertext needs to be sent via a edu.biu.scapi.comm.Channel or any other means of sending data (including serialization).
@@ -243,14 +272,25 @@ public:
 	string toString() override { return string(cipher);	};
 
 	void initFromString(const string & row) override { cipher = biginteger(row); }
-
-	template<class Archive> inline void serialize(
-		Archive & ar,
-		const unsigned int /* file_version */
-	){
-		ar & cipher;
-	}
 };
+// pointer serialization methods since there is no default constructor
+namespace boost { namespace serialization {
+	template<class Archive>
+	inline void save_construct_data(
+	    Archive & ar, const BigIntegerCiphertext * t, const unsigned int /* file_version */
+	){
+	    ar << t->getCipher();
+	}
+	template<class Archive>
+	inline void load_construct_data(
+	    Archive & ar, BigIntegerCiphertext * t, const unsigned int /* file_version */
+	){
+		biginteger x;
+	    ar >> x;
+	    ::new(t)BigIntegerCiphertext(x);
+	}
+}}
+BOOST_CLASS_EXPORT_KEY(BigIntegerCiphertext)
 
 /**
 * General interface for any symmetric ciphertext.
