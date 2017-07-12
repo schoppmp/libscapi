@@ -73,9 +73,11 @@ private:
 	}
 
 public:
-	biginteger getX() const { return x; };
+	BigIntegerPlainText() : x(0) {};
 	BigIntegerPlainText(biginteger x) : x(x) {};
 	BigIntegerPlainText(string s) { this->x = biginteger(s); };
+
+	biginteger getX() const { return x; };
 	bool operator==(const Plaintext &other) const {
 		auto temp = dynamic_cast<const BigIntegerPlainText*>(&other);
 
@@ -94,23 +96,6 @@ public:
 	string toString() override { return (string)x; };
 	void initFromString(const string & raw) override { x = biginteger(raw); }
 };
-// pointer serialization methods since there is no default constructor
-namespace boost { namespace serialization {
-	template<class Archive>
-	inline void save_construct_data(
-	    Archive & ar, const BigIntegerPlainText * t, const unsigned int /* file_version */
-	){
-	    ar << t->getX();
-	}
-	template<class Archive>
-	inline void load_construct_data(
-	    Archive & ar, BigIntegerPlainText * t, const unsigned int /* file_version */
-	){
-		biginteger x;
-	    ar >> x;
-	    ::new(t)BigIntegerPlainText(x);
-	}
-}}
 BOOST_CLASS_EXPORT_KEY(BigIntegerPlainText)
 
 /**
@@ -243,7 +228,7 @@ private:
 		ar & cipher;
 	}
 public:
-	// BigIntegerCiphertext() : cipher(0) {};
+	BigIntegerCiphertext() : cipher(0) {};
 	BigIntegerCiphertext(biginteger cipher) : cipher(cipher) {};
 
 	biginteger getCipher() const { return cipher;	}
@@ -271,23 +256,6 @@ public:
 
 	void initFromString(const string & row) override { cipher = biginteger(row); }
 };
-// pointer serialization methods since there is no default constructor
-namespace boost { namespace serialization {
-	template<class Archive>
-	inline void save_construct_data(
-	    Archive & ar, const BigIntegerCiphertext * t, const unsigned int /* file_version */
-	){
-	    ar << t->getCipher();
-	}
-	template<class Archive>
-	inline void load_construct_data(
-	    Archive & ar, BigIntegerCiphertext * t, const unsigned int /* file_version */
-	){
-		biginteger x;
-	    ar >> x;
-	    ::new(t)BigIntegerCiphertext(x);
-	}
-}}
 BOOST_CLASS_EXPORT_KEY(BigIntegerCiphertext)
 
 /**

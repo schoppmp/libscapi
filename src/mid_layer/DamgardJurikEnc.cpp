@@ -290,7 +290,7 @@ shared_ptr<Plaintext> DamgardJurikEnc::decrypt(AsymmetricCiphertext* cipher) {
 	auto djCipher = dynamic_cast<BigIntegerCiphertext*>(cipher);
 	if (djCipher == NULL) {
 		throw invalid_argument ("cipher should be instance of BigIntegerCiphertext");
-	} 
+	}
 
 	//n is the modulus in the public key.
 	biginteger n = publicKey->getModulus();
