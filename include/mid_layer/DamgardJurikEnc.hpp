@@ -94,7 +94,8 @@ namespace boost { namespace serialization {
 	inline void save_construct_data(
 	    Archive & ar, const DamgardJurikPublicKey * t, const unsigned int /* file_version */
 	){
-	    ar << t->getModulus();
+		auto modulus = t->getModulus();
+	    ar << modulus;
 	}
 	template<class Archive>
 	inline void load_construct_data(

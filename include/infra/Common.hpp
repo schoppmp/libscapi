@@ -112,7 +112,8 @@ inline void save(
 	const boost::multiprecision::gmp_int & t,
 	const unsigned int /* file_version */
 ){
-	ar & boost::multiprecision::cpp_int(biginteger(t));
+	auto t2 = boost::multiprecision::cpp_int(biginteger(t));
+	ar & t2;
 	// size_t count = (mpz_sizeinbase(t.data(), 2) + 7) / 8;
 	// std::vector<char> buf(count);
 	// mpz_export(&buf[0], nullptr, 1, 1, 1, 0, t.data());
